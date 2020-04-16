@@ -99,6 +99,10 @@ export default function filesize(options = {}, env) {
 					if (typeof reporter === "string") {
 						let p;
 						if (reporter === "boxen") {
+							console.log(
+								"(new URL(import.meta.url).pathname)",
+								new URL(import.meta.url).pathname
+							);
 							p = import(
 								dirname(new URL(import.meta.url).pathname) +
 									"/reporters/boxen.js"

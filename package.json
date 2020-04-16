@@ -9,6 +9,7 @@
     "dist",
     "README"
   ],
+  "type": "module",
   "scripts": {
     "lint": "eslint .",
     "test": "nyc ava test/index.test.js",
