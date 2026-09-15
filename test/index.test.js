@@ -1,13 +1,10 @@
-import { existsSync } from "fs";
-import { promisify } from "util";
+import { existsSync } from "node:fs";
 import test from "ava";
-import rimRaf from "rimraf";
-import colors from "colors/safe";
+import {rimraf} from "rimraf";
+import colors from "colors/safe.js";
 import filesize from "../src/index.js";
 
 const npmNetworkTimeout = 30000;
-
-const rimraf = promisify(rimRaf);
 
 const x = filesize({}, "test");
 
@@ -171,9 +168,9 @@ test("fileSize should apply `showBeforeSizes` option", async (t) => {
 
 	if (colors.supportsColor()) {
 		// eslint-disable-next-line no-control-regex
-		t.regex(val, /\(was \u001b\[33m[\d.]+ KB/);
+		t.regex(val, /\(was \u001b\[33m[\d.]+ kB/);
 	} else {
-		t.regex(val, /\(was [\d.]+ KB/);
+		t.regex(val, /\(was [\d.]+ kB/);
 	}
 
 	// Should recreate the `.cache` folder
@@ -201,9 +198,9 @@ test("fileSize should apply `showBeforeSizes` option with Brotli size", async (t
 
 	if (colors.supportsColor()) {
 		// eslint-disable-next-line no-control-regex
-		t.regex(val, /\(was \u001b\[33m[\d.]+ KB/);
+		t.regex(val, /\(was \u001b\[33m[\d.]+ kB/);
 	} else {
-		t.regex(val, /\(was [\d.]+ KB/);
+		t.regex(val, /\(was [\d.]+ kB/);
 	}
 
 	// Should recreate the `.cache` folder
@@ -218,9 +215,9 @@ test('fileSize should apply `showBeforeSizes` option as "build"', async (t) => {
 	t.regex(val, /in last build/);
 	if (colors.supportsColor()) {
 		// eslint-disable-next-line no-control-regex
-		t.regex(val, /\(was \u001b\[33m[\d.]+ KB/);
+		t.regex(val, /\(was \u001b\[33m[\d.]+ kB/);
 	} else {
-		t.regex(val, /\(was [\d.]+ KB/);
+		t.regex(val, /\(was [\d.]+ kB/);
 	}
 });
 
@@ -231,7 +228,6 @@ test('fileSize should ignore before sizes with package missing file (test files 
 	let getLoggingData = filesize({ showBeforeSizes: "release" }, "test");
 	let val = await getLoggingData({ file: "./test/fixtures/sample.js" }, bundle);
 	if (colors.supportsColor()) {
-		// eslint-disable-next-line no-control-regex
 		t.notRegex(val, /\(was /);
 	} else {
 		t.notRegex(val, /\(was /);
@@ -252,7 +248,6 @@ test("fileSize should ignore before sizes with bad package", async (t) => {
 	const val = await prom;
 
 	if (colors.supportsColor()) {
-		// eslint-disable-next-line no-control-regex
 		t.notRegex(val, /\(was /);
 	} else {
 		t.notRegex(val, /\(was /);
@@ -270,9 +265,9 @@ test("fileSize should apply `showBeforeSizes` option (with deprecated `dest`)", 
 
 	if (colors.supportsColor()) {
 		// eslint-disable-next-line no-control-regex
-		t.regex(val, /\(was \u001b\[33m[\d.]+ KB/);
+		t.regex(val, /\(was \u001b\[33m[\d.]+ kB/);
 	} else {
-		t.regex(val, /\(was [\d.]+ KB/);
+		t.regex(val, /\(was [\d.]+ kB/);
 	}
 
 	// Should recreate the `.cache` folder

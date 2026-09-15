@@ -1,20 +1,18 @@
-import { readFile as origReadFile } from "fs";
-import { promisify } from "util";
-import { dirname, resolve as pathResolve, join } from "path";
+import { readFile } from "node:fs/promises";
+import { dirname, resolve as pathResolve, join } from "node:path";
+import { pathToFileURL } from "node:url";
 
-import fileSize from "filesize";
-import gzip from "gzip-size";
-import terser from "terser";
+import {filesize as fileSize} from "filesize";
+import * as gzip from "gzip-size";
+import * as terser from "terser";
 import brotli from "brotli-size";
 import pacote from "pacote";
-
-const readFile = promisify(origReadFile);
 
 const isWindows = process.platform === "win32";
 
 function fixWindowsPath(path) {
 	return path.slice(
-		// istanbul ignore next
+		/* c8 ignore next -- Windows */
 		isWindows ? 1 : 0
 	);
 }
@@ -55,7 +53,11 @@ export default function filesize(options = {}, env) {
 		if (showBeforeSizes !== "none") {
 			let file = outputOptions.file || outputOptions.dest;
 			if (showBeforeSizes !== "build") {
-				const { name } = await import(join(process.cwd(), "./package.json"));
+				const { default: { name } } = await import(pathToFileURL(join(process.cwd(), "./package.json")).href, {
+					with: {
+						type: 'json'
+					}
+				});
 				try {
 					const output = join(thisDirectory, "../.cache");
 
@@ -68,7 +70,7 @@ export default function filesize(options = {}, env) {
 					info.lastVersion = lastVersion;
 
 					file = pathResolve(output, file);
-				} catch (err) {
+				} catch {
 					// Package might not exist
 					console.log(`Package, "${name}", was not found.`);
 					file = null;
@@ -78,7 +80,7 @@ export default function filesize(options = {}, env) {
 			if (file) {
 				try {
 					codeBefore = await readFile(file, "utf8");
-				} catch (err) {
+				} catch {
 					console.log(`File, "${file}", was not found.`);
 					// File might not exist
 				}
@@ -90,7 +92,7 @@ export default function filesize(options = {}, env) {
 		info.bundleSize = fileSize(Buffer.byteLength(code), format);
 
 		info.brotliSize = showBrotliSize
-			? fileSize(await brotli(code), format)
+			? fileSize(await brotli.default(code), format)
 			: "";
 
 		if (showMinifiedSize || showGzippedSize) {
@@ -99,14 +101,14 @@ export default function filesize(options = {}, env) {
 				? fileSize(minifiedCode.length, format)
 				: "";
 			info.gzipSize = showGzippedSize
-				? fileSize(gzip.sync(minifiedCode), format)
+				? fileSize(gzip.gzipSizeSync(minifiedCode), format)
 				: "";
 		}
 
 		if (codeBefore) {
 			info.bundleSizeBefore = fileSize(Buffer.byteLength(codeBefore), format);
 			info.brotliSizeBefore = showBrotliSize
-				? fileSize(await brotli(codeBefore), format)
+				? fileSize(await brotli.default(codeBefore), format)
 				: "";
 			if (showMinifiedSize || showGzippedSize) {
 				const minifiedCode = (await terser.minify(codeBefore)).code;
@@ -114,7 +116,7 @@ export default function filesize(options = {}, env) {
 					? fileSize(minifiedCode.length, format)
 					: "";
 				info.gzipSizeBefore = showGzippedSize
-					? fileSize(gzip.sync(minifiedCode), format)
+					? fileSize(gzip.gzipSizeSync(minifiedCode), format)
 					: "";
 			}
 		}
@@ -148,9 +150,9 @@ export default function filesize(options = {}, env) {
 					if (typeof reporter === "string") {
 						let p;
 						if (reporter === "boxen") {
-							p = import(join(thisDirectory, "/reporters/boxen.js"));
+							p = import(pathToFileURL(join(thisDirectory, "/reporters/boxen.js")).href);
 						} else {
-							p = import(pathResolve(process.cwd(), reporter));
+							p = import(pathToFileURL(pathResolve(process.cwd(), reporter)).href);
 						}
 						reporter = (await p).default;
 					}
@@ -172,7 +174,7 @@ export default function filesize(options = {}, env) {
 				Object.keys(bundle)
 					.map((fileName) => bundle[fileName])
 					.filter((currentBundle) => {
-						if ({}.hasOwnProperty.call(currentBundle, "type")) {
+						if (Object.hasOwn(currentBundle, "type")) {
 							return currentBundle.type !== "asset";
 						}
 						return !currentBundle.isAsset;
